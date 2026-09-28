@@ -32,7 +32,15 @@ subagent({ name: "Fix retry regression", agent: "poteto-agent", task: "investiga
 
 ## Safety
 
-The extension does not intercept shell commands or request confirmation. Poteto Mode follows upstream pstack autonomy: reversible work and external actions proceed without asking. The agent pauses only for irreversible writes: force-pushes to shared branches, deployments, data deletion, and customer messages.
+By default, the extension requests confirmation for recognizable Bash commands that push, alter pull requests, merge, deploy, mutate infrastructure, or recursively delete files. It blocks these commands when no UI is available. This is a guardrail, not a complete shell-security sandbox.
+
+To disable the command check, set `confirmExternalActions` to `false` in `~/.pi/agent/pstack/config.json`:
+
+```json
+{"confirmExternalActions": false}
+```
+
+If `PI_CODING_AGENT_DIR` is set, use `<PI_CODING_AGENT_DIR>/pstack/config.json` instead. Restart Pi or reload the extension after a config change. Missing, malformed, or other values keep the check enabled.
 
 ## License and provenance
 

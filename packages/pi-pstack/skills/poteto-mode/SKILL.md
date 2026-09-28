@@ -73,9 +73,9 @@ Read the leaf skill in full for any principle you apply. Each entry names when i
 
 ## Autonomy
 
-**Just do it.** Use available MCP tools. Reversible work and external actions, such as team chat, ticket updates, and starting evaluations, proceed without asking.
+**Just do reversible local work.** Use available MCP tools within their documented scope.
 
-**Always pause** for irreversible writes: force-pushes to shared branches, deployments, data deletion, and customer messages.
+**Always obtain explicit confirmation** before external or irreversible actions, including force-pushes, PR creation or updates, CI triggers, merges, deployments, data deletion, and customer messages. By default, the pstack extension blocks recognizable Bash commands for these actions until confirmation. Set `confirmExternalActions` to `false` in `<PI_CODING_AGENT_DIR>/pstack/config.json` (or `~/.pi/agent/pstack/config.json`) to disable the command check. This does not change the instruction to obtain confirmation.
 
 **Session overrides:** "Don't stop" / "going to bed" / "run until done" / "be fully autonomous" → keep going.
 

@@ -1,4 +1,6 @@
 import * as path from "node:path";
+import { readFileSync } from "node:fs";
+import { homedir } from "node:os";
 import { fileURLToPath } from "node:url";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { registerPstackRoles } from "./roles.js";
@@ -7,6 +9,29 @@ const MODE_ENTRY = "pstack-mode";
 
 function packageRoot(): string {
   return path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
+}
+
+function confirmExternalActions(): boolean {
+  const agentDir = process.env.PI_CODING_AGENT_DIR || path.join(homedir(), ".pi/agent");
+  try {
+    const config = JSON.parse(readFileSync(path.join(agentDir, "pstack/config.json"), "utf8"));
+    return config?.confirmExternalActions !== false;
+  } catch {
+    return true;
+  }
+}
+
+function knownExternalWrite(command: string): string | undefined {
+  const patterns: Array<[RegExp, string]> = [
+    [/\bgit\s+push\b/, "git push"],
+    [/\bgh\s+pr\s+(create|edit|merge|close)\b/, "GitHub pull-request mutation"],
+    [/\bgt\s+(submit|merge|create)\b/, "Graphite mutation"],
+    [/\b(terraform|tofu)\s+(apply|destroy)\b/, "infrastructure mutation"],
+    [/\bkubectl\s+(apply|delete|rollout)\b/, "Kubernetes mutation"],
+    [/\b(vercel|flyctl|railway)\s+(deploy|promote)\b/, "deployment"],
+    [/\brm\s+(-[A-Za-z]*r|--recursive)/, "recursive deletion"],
+  ];
+  return patterns.find(([pattern]) => pattern.test(command))?.[1];
 }
 
 export default function (pi: ExtensionAPI) {
@@ -41,6 +66,26 @@ export default function (pi: ExtensionAPI) {
     return {
       systemPrompt: `${event.systemPrompt}\n\nPstack Poteto Mode is enabled for this session. Follow its persisted workflow: track non-trivial work in the session's task tools, select and read the matching playbook, delegate through the subagent tool when delegation helps, verify real behavior, and name only principles that changed a decision. The full skill is at ${path.join(packageRoot(), "skills/poteto-mode/SKILL.md")}.`,
     };
+  });
+
+  if (confirmExternalActions()) pi.on("tool_call", async (event, ctx) => {
+    if (event.toolName !== "bash") return;
+    const input = event.input as { command?: string };
+    const operation = input.command
+      ? knownExternalWrite(input.command)
+      : undefined;
+    if (!operation) return;
+    if (!ctx.hasUI)
+      return {
+        block: true,
+        reason: `${operation} requires explicit user confirmation; non-interactive Pi cannot request it.`,
+      };
+    const approved = await ctx.ui.confirm(
+      "Confirm external or irreversible action",
+      `Allow ${operation}?\n\n${input.command}`,
+    );
+    if (!approved)
+      return { block: true, reason: `User declined ${operation}.` };
   });
 
   pi.registerCommand("poteto-mode", {
