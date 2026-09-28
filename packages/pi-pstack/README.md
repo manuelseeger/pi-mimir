@@ -32,7 +32,7 @@ subagent({ name: "Fix retry regression", agent: "poteto-agent", task: "investiga
 
 ## Safety
 
-The extension requests confirmation for recognizable shell commands that push, alter pull requests, merge, deploy, mutate infrastructure, or recursively delete files. In non-interactive mode it blocks these commands. This is a guardrail, not a complete shell-security sandbox.
+The extension does not intercept shell commands or request confirmation. Poteto Mode follows upstream pstack autonomy: reversible work and external actions proceed without asking. The agent pauses only for irreversible writes: force-pushes to shared branches, deployments, data deletion, and customer messages.
 
 ## License and provenance
 
