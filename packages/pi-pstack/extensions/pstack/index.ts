@@ -1,4 +1,6 @@
 import * as path from "node:path";
+import { readFileSync } from "node:fs";
+import { homedir } from "node:os";
 import { fileURLToPath } from "node:url";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { registerPstackRoles } from "./roles.js";
@@ -7,6 +9,16 @@ const MODE_ENTRY = "pstack-mode";
 
 function packageRoot(): string {
   return path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
+}
+
+function confirmExternalActions(): boolean {
+  const agentDir = process.env.PI_CODING_AGENT_DIR || path.join(homedir(), ".pi/agent");
+  try {
+    const config = JSON.parse(readFileSync(path.join(agentDir, "pstack/config.json"), "utf8"));
+    return config?.confirmExternalActions !== false;
+  } catch {
+    return true;
+  }
 }
 
 function knownExternalWrite(command: string): string | undefined {
@@ -56,7 +68,7 @@ export default function (pi: ExtensionAPI) {
     };
   });
 
-  pi.on("tool_call", async (event, ctx) => {
+  if (confirmExternalActions()) pi.on("tool_call", async (event, ctx) => {
     if (event.toolName !== "bash") return;
     const input = event.input as { command?: string };
     const operation = input.command

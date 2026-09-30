@@ -73,9 +73,9 @@ Read the leaf skill in full for any principle you apply. Each entry names when i
 
 ## Autonomy
 
-**Just do reversible local work.** Use available MCP tools within their documented scope.
+**Just do it.** Use available MCP tools. Reversible work and external actions, such as team chat, ticket updates, and starting evaluations, proceed without asking.
 
-**Always obtain explicit confirmation** before external or irreversible actions, including force-pushes, PR creation or updates, CI triggers, merges, deployments, data deletion, and customer messages. The pstack extension blocks recognizable shell commands for these actions until confirmation.
+**Always pause** for irreversible writes: force-pushes to shared branches, deployments, data deletion, and customer messages.
 
 **Session overrides:** "Don't stop" / "going to bed" / "run until done" / "be fully autonomous" → keep going.
 
