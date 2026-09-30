@@ -73,11 +73,9 @@ Read the leaf skill in full for any principle you apply. Each entry names when i
 
 ## Autonomy
 
-Read `pstack/config.json` under `PI_CODING_AGENT_DIR` if set, otherwise under `~/.pi/agent`. Use the upstream policy below only when `confirmExternalActions` is the JSON boolean `false`. Missing or invalid config, or any other value, selects the confirmation policy. The pstack extension uses the same setting for its recognizable Bash command check; it is not a complete guard for other tools.
+**Just do it.** Use available MCP tools. Reversible work and external actions, such as team chat, ticket updates, and starting evaluations, proceed without asking.
 
-**When `confirmExternalActions` is `false` (upstream pstack):** Just do it. Use available MCP tools. Reversible work and external actions, such as team chat, ticket updates, and starting evaluations, proceed without asking. Always pause for irreversible writes: force-pushes to shared branches, deployments, data deletion, and customer messages.
-
-**Otherwise (default):** Just do reversible local work. Use available MCP tools within their documented scope. Always obtain explicit confirmation before external or irreversible actions, including force-pushes, PR creation or updates, CI triggers, merges, deployments, data deletion, and customer messages. The pstack extension blocks recognizable Bash commands for these actions until confirmation.
+**Always pause** for irreversible writes: force-pushes to shared branches, deployments, data deletion, and customer messages.
 
 **Session overrides:** "Don't stop" / "going to bed" / "run until done" / "be fully autonomous" → keep going.
 
