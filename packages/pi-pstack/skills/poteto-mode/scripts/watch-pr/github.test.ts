@@ -1,6 +1,5 @@
 import { describe, expect, it } from "bun:test";
 import {
-  ChecksUnavailable,
   WatcherQueryError,
   mapRollupNode,
   orderStack,
@@ -16,6 +15,7 @@ import {
   pendingCheck,
 } from "./fakes.test-helper.ts";
 import { parsePrNumber } from "./types.ts";
+import { readSnapshot } from "./policy.ts";
 
 const context = {
   owner: "owner",
@@ -63,18 +63,52 @@ describe("checks fallback chain", () => {
     expect(reader.calls).toEqual(["checksFastPath", "checkRollupPage:null"]);
   });
 
-  it("fails closed when both paths are empty", async () => {
+  it("accepts a successful empty rollup after gh reports no checks", async () => {
     const reader = fakeReader({
       fastPath: {
         kind: "unusable",
-        exitCode: 8,
-        stderr: "credential cannot read checks",
+        exitCode: 1,
+        stderr: "no checks reported",
       },
+      rollupPages: [{ checks: [], endCursor: null }],
+      commitRollups: [{ oid: "head", state: null }],
     });
-    await expect(resolveChecks(reader, context)).rejects.toBeInstanceOf(
-      ChecksUnavailable
-    );
-    expect(reader.calls).toEqual(["checksFastPath", "checkRollupPage:null"]);
+    expect(await resolveChecks(reader, context)).toEqual({
+      source: "graphql-rollup",
+      checks: [
+        {
+          kind: "skipped",
+          name: "No checks reported",
+          reportedState: "SKIPPED",
+          description: "",
+          link: "",
+          workflow: "",
+        },
+      ],
+    });
+    const snapshot = await readSnapshot({
+      reader,
+      context,
+      pendingHistory: "include",
+      allowDraft: false,
+    });
+    expect(snapshot).toMatchObject({ kind: "open", ci: { kind: "ci-clean" } });
+  });
+
+  it("preserves GraphQL retrieval errors after an unusable fast path", async () => {
+    const failure = new WatcherQueryError({
+      kind: "command-exit",
+      retryable: true,
+      code: 1,
+      detail: "credential cannot read checks",
+    });
+    const reader = fakeReader({
+      fastPath: { kind: "unusable", exitCode: 1, stderr: "no checks reported" },
+    });
+    reader.checkRollupPage = async () => {
+      throw failure;
+    };
+    await expect(resolveChecks(reader, context)).rejects.toBe(failure);
   });
 });
 
