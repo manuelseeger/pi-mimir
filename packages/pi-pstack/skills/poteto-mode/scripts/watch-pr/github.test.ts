@@ -75,14 +75,16 @@ describe("checks fallback chain", () => {
     });
     expect(await resolveChecks(reader, context)).toEqual({
       source: "graphql-rollup",
-      checks: [{
-        kind: "skipped",
-        name: "No checks reported",
-        reportedState: "SKIPPED",
-        description: "",
-        link: "",
-        workflow: "",
-      }],
+      checks: [
+        {
+          kind: "skipped",
+          name: "No checks reported",
+          reportedState: "SKIPPED",
+          description: "",
+          link: "",
+          workflow: "",
+        },
+      ],
     });
     const snapshot = await readSnapshot({
       reader,
@@ -103,7 +105,9 @@ describe("checks fallback chain", () => {
     const reader = fakeReader({
       fastPath: { kind: "unusable", exitCode: 1, stderr: "no checks reported" },
     });
-    reader.checkRollupPage = async () => { throw failure; };
+    reader.checkRollupPage = async () => {
+      throw failure;
+    };
     await expect(resolveChecks(reader, context)).rejects.toBe(failure);
   });
 });
